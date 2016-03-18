@@ -1,11 +1,19 @@
 <!doctype html>
 <html>
 <head>
-    <title>Pin !T</title>
+  <title>Pin !T</title>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-  <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-  <script src="https://npmcdn.com/masonry-layout@4.0/dist/masonry.pkgd.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/masonry/4.0.0/masonry.pkgd.min.js"></script>
+  <script src="http://imagesloaded.desandro.com/imagesloaded.pkgd.js"></script>
+  <style>
+  .item {
+    max-width: 80%;
+    max-height: 60%;
+  }
+  </style>
 </head>
 <body>
     
@@ -17,7 +25,7 @@
         <li><a href="/">Pin !T</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        <li><a href="#">Recent</a></li>
+        <li><a href="/">Recent</a></li>
         <li class="dropdown" id="menuLogin">
           <a class="dropdown-toggle" href="#" data-toggle="dropdown" id="navLogin"><span class="glyphicon glyphicon-log-in"></span> Login</a>
           <div class="dropdown-menu" style="padding:17px; margin:20px;">
@@ -32,8 +40,9 @@
                 </div>
                 <button type="submit" class="btn btn-secondary btn-lg center-block"><span class="glyphicon glyphicon-log-in"></span> Login</button>
             </form>
-          </div>
+            </div>
         </li>
+        <!--
         <li class="dropdown" id="menuLogin">
           <a class="dropdown-toggle" href="#" data-toggle="dropdown" id="navLogin"><span class="glyphicon glyphicon-user"></span> Sign Up</a>
           <div class="dropdown-menu" style="padding:17px; margin: 20px;">
@@ -49,12 +58,18 @@
                 <button type="submit" class="btn btn-secondary btn-lg center-block"><span class="glyphicon glyphicon-user"></span> Signup</button>
             </form>
           </div>
-        </li>
+        </li>-->
+        <li><a href="/signup"><span class="glyphicon glyphicon-user"></span> Sign Up</a></li>
       </ul>
     </div>
   </nav><!-- navbar --->
-
-  <img src="../images/edd3b9ed18b0f43881389ff87667575c.jpg">
+  
+  
+  
+  
+  
+  <div class="container grid" id="masonry">
+  </div>
   
 </body>
 </html>

@@ -88,13 +88,19 @@ module.exports = function(passport) {
                         return done(err);
 
                     // check to see if theres already a user with that email
-                    if (user) {
+                    if(user) { 
                         return done(null, false, req.flash('signupMessage', 'That email is already taken.'));
+                    } else {
+                        User.findOne({ 'local.username' : req.body.username }, function(err, username) {
+                        if(err) throw err;
+                    if (username) {
+                        return done(null, false, req.flash('signupMessage', 'That username is already taken.'));
                     } else {
 
                         // create the user
                         var newUser            = new User();
-
+                        newUser.local.username = req.body.username;
+                        //console.log(req.body.username);
                         newUser.local.email    = email;
                         newUser.local.password = newUser.generateHash(password);
 
@@ -105,7 +111,7 @@ module.exports = function(passport) {
                             return done(null, newUser);
                         });
                     }
-
+                    })}
                 });
             // if the user is logged in but has no local account...
             } else if ( !req.user.local.email ) {

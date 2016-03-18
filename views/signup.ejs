@@ -30,7 +30,7 @@
             </form>
           </div>
         </li>
-        <li class="dropdown" id="menuLogin">
+        <!--<li class="dropdown" id="menuLogin">
           <a class="dropdown-toggle" href="#" data-toggle="dropdown" id="navLogin"><span class="glyphicon glyphicon-user"></span> Sign Up</a>
           <div class="dropdown-menu" style="padding:17px; margin: 20px;">
             <form action="/signup" method="post">
@@ -45,7 +45,7 @@
                 <button type="submit" class="btn btn-secondary btn-lg center-block"><span class="glyphicon glyphicon-user"></span> Signup</button>
             </form>
           </div>
-        </li>
+        </li>-->
       </ul>
     </div>
   </nav><!-- navbar --->
@@ -61,6 +61,10 @@
 
     <!-- LOGIN FORM -->
     <form action="/signup" method="post">
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" class="form-control" id="username" name="username">
+        </div>
         <div class="form-group">
             <label>Email</label>
             <input type="text" class="form-control" name="email">

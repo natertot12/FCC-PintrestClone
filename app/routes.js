@@ -1,4 +1,7 @@
 module.exports = function(app, passport) {
+    
+    //make a app.get for /user/:userid and send all posts made by that req.user._id
+    
     var multer = require("multer"),
     mongodb = require("mongodb"),
     mongoUrl = "mongodb://localhost:27017/mongo",
@@ -25,9 +28,8 @@ module.exports = function(app, passport) {
             if(err) throw err;
     // show the home page (will also have our login links)
     app.get('/', function(req, res) {
-        var address = "";
+        var address = "secondaryIndex.html";
         if(req.isAuthenticated()) address = "index.html";
-        else address = "secondaryIndex.html";
         fs.readFile((path.join(__dirname + '/../views/' + address)), function(err, result) {
             if (err) throw err;
             res.write(result);
@@ -39,12 +41,10 @@ module.exports = function(app, passport) {
                        var a = 0;
                        var rawHtml = "";
                        data.forEach(function(doc) {
-                            //res.write('<div class="grid-item"><div class="thumbnail text-center"><img src="' + doc.imgLink + '"><div class="caption"><h3>'+ doc.title +'</h3><p>'+ doc.description +'</p><p><a href="#" class="btn btn-primary" role="button">Button</a></p></div></div></div>');
-                            //res.write('<div class="grid-item"><div class="thumbnail text-center"><img src="' + doc.imgLink + '"><div class="caption"><h3>'+ doc.title +'</h3><p>'+ doc.description +'</p><p><a href="#" class="btn btn-primary" role="button">Button</a></p></div></div></div>');
-                            rawHtml += '<div class="grid-item"><div class="thumbnail text-center"><img src="images/1730d176a3a5dbbd00ca451a05a67f42.png"/><div class="caption"><h3>'+ doc.title +'</h3><p>'+ doc.description +'</p><p><a href="#" class="btn btn-primary" role="button">Button</a></p></div></div></div>';
-                            console.log(doc.imgLink);
+                            rawHtml += '<div class="grid-item"><div class="thumbnail text-center"><img src="'+doc.imgLink+'"/><div class="caption"><h3>'+ doc.title +'</h3><p>'+ doc.description +'</p><p><a href="#" class="btn btn-primary" role="button">Like</a></p><p>Created By: <a href="/user/'+doc.user+'">'+doc.username+'</a></p></div></div></div>';
+                            //console.log(doc.imgLink);
                             a++;
-                            if(a == count) res.end("<script>$(document).ready(function() {$('#masonry').append('"+rawHtml+"');var $grid = $('.grid').masonry({itemSelector: '.grid-item',percentPosition: true,columnWidth: 50});$grid.imagesLoaded().progress( function() {$grid.masonry();});});</script>");
+                            if(a == count) res.end("<script>$(document).ready(function() {var $mason=$('#masonry');$mason.hide();$mason.append('"+rawHtml+"');var $grid = $('.grid').masonry({itemSelector: '.grid-item',percentPosition: true,columnWidth: 50});$grid.imagesLoaded().progress( function() {$grid.masonry();$mason.show();});});</script>");
                         });
                     });
                 } else res.end();
@@ -63,14 +63,22 @@ module.exports = function(app, passport) {
     });
     
     app.get('/images/:imageID', function(req, res) {
-        var id = req.params.id;
-        res.sendFile('../images/' + id);
+        var id = req.params.imageID;
+        res.sendFile(path.join(__dirname + '/../images/' + id));
     });
 
 
 // posts =======================================================================
     app.post('/post', upload.single('exact'), function(req, res) {
         //res.json(req.file.path);
+        var name = "";
+        
+        if(req.user.facebook.name != undefined) { name=req.user.facebook.name;
+        } else if(req.user.twitter.username != undefined) { name=req.user.twitter.username;
+        } else if(req.user.google.name != undefined) { name=req.user.google.name;
+        } else { name = req.user.local.username;}
+        console.log(name);
+        
         var filepath = "";
         for(var a = 0; a < req.file.path.length; a++) {
             filepath += req.file.path[a];
@@ -80,8 +88,8 @@ module.exports = function(app, passport) {
         console.log(fileType);
         var goodFileTypes = ["jpeg", "png", "gif", ];
         if(goodFileTypes.indexOf(fileType) != -1) {
-            console.log("The path for that new file is " + '../' + filepath);
-            db.collection('mongo').insertOne({user: req.user._id, title:req.body.title, description:req.body.description, imgLink: '../' + filepath});
+            console.log("The path for that new file is " +  filepath);
+            db.collection('mongo').insertOne({username: name, user: req.user._id, title:req.body.title, description:req.body.description, imgLink: filepath});
         }
         res.redirect('/');
         //res.json(req.file.filename);
