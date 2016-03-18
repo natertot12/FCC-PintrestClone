@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+<head>
+    <title>Pin !T</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+  <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  <script src="https://npmcdn.com/masonry-layout@4.0/dist/masonry.pkgd.min.js"></script>
+  <style>
+    img {width: 80%;}
+    .per80 {width: 80%;}
+  </style>
+  <script>
+    $(function () {
+    $('#myImg').hide();
+    $(":file").change(function () {
+        if (this.files && this.files[0]) {
+            var reader = new FileReader();
+            reader.onload = imageIsLoaded;
+            reader.readAsDataURL(this.files[0]);
+            $('#file').removeClass('btn-warning').addClass('btn-success');
+        }
+    });
+});
+
+function imageIsLoaded(e) {
+    $('#myImg').attr('src', e.target.result);
+    $('#myImg').show();
+};
+  </script>
+</head>
+<body>
+    
+    
+    
+    <nav class="navbar navbar-default">
+    <div class="container-fluid">
+      <ul class="nav navbar-nav navbar-left">
+        <li><a href="/">Pin !T</a></li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="/">Recent</a></li>
+        <li><a href="/logout">Logout</a></li>
+      </ul>
+    </div>
+  </nav><!-- navbar --->
+  
+  <form class="form-control text-center center-block" method="post" action="/post" enctype="multipart/form-data">
+    <fieldset class="form-group">
+      <p class="per80 text-center center-block">Image or Link an Image</p>
+      <br>
+      <input size="35" class="form-group text-center" type="text" name="link" id="link"/>
+      <br>
+      <img class="per80" id="myImg" src="#"/>
+      <input class="form-group btn btn-warning center-block per80 text-center" type="file" name="exact" id="file"/>
+      <br>
+    </fieldset>
+    <fieldset class="form-group">
+      <p>Title</p>
+      <input size="35" class="form-group" type="text" name="title" id="title" required/>
+      <p>Description</p>
+      <textarea class="form-group" name="description" id="description"></textarea>
+    </fieldset>
+    <input type="submit" class="btn btn-secondary center-block" id="submit" value="Pin !T">
+  </form>
+  <br>
+  <br>
+    
+    
+</body>
+</html>
