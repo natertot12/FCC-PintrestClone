@@ -12,6 +12,10 @@
   </style>
   <script>
     $(function () {
+      $('#tags').keypress(function(){
+      if(this.value.length > 20) return false;
+      $("#textCount").html(20 - this.value.length);
+    });
     $('#myImg').hide();
     $(":file").change(function () {
         if (this.files && this.files[0]) {
@@ -70,6 +74,8 @@ function imageIsLoaded(e) {
       <input size="35" class="form-group" type="text" name="title" id="title" required/>
       <p>Description</p>
       <textarea class="form-group" name="description" id="description"></textarea>
+      <p>Tags (Please seperate with #'s)</p><p id="textCount"></p>
+      <input type="text" id="tags" class="form-group" name="tags"/>
     </fieldset>
     <input type="submit" class="btn btn-secondary center-block" id="submit" value="Pin !T">
   </form>

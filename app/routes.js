@@ -1,10 +1,19 @@
 module.exports = function(app, passport) {
     
-    //make user be able to delete his/her own posts.
+    //add app.get('/tags/:tag') and send all pins that have a certain tag in tags array
+    
     //work on likes and make users be able to unlike something.
     //add tags so users can search by tags.
     //make a report button so if 10 different people report something it gets removed.
     //change the way it loads the masonry objects and add animations.
+    //configure twitter facebook google plus.
+    
+    
+    //future css
+    
+    //add animation for liking something
+    //add animation if the user hovers over delete button 
+    //add more color.
     
     
     var multer = require("multer"),
@@ -46,7 +55,11 @@ module.exports = function(app, passport) {
                        var a = 0;
                        var rawHtml = "";
                        data.forEach(function(doc) {
-                            rawHtml += '<div class="grid-item"><div class="thumbnail text-center"><img src="'+doc.imgLink+'"/><div class="caption"><h3>'+ doc.title +'</h3><p>'+ doc.description +'</p><p><a href="#" class="btn btn-primary" role="button">Like</a></p><p>Created By: <a href="/user/'+doc.user+'">'+doc.username+'</a></p></div></div></div>';
+                            var tags = "";
+                            doc.tags.forEach(function(el, index) {
+                                tags += '<a id="tag" href="/tags/' + el + '">' + el + ' </a>';
+                            });
+                            rawHtml += '<div class="grid-item"><div class="thumbnail text-center"><img src="'+doc.imgLink+'"/><div class="caption"><h3>'+ doc.title +'</h3><p>'+ doc.description +'</p><p><a href="#" class="btn btn-primary" role="button">Like</a></p><p>Created By: <a href="/user/'+doc.user+'">'+doc.username+'</a></p>'+ tags +'</div></div></div>';
                             //console.log(doc.imgLink);
                             a++;
                             if(a == count) res.end("<script>$(document).ready(function() {var $mason=$('#masonry');$mason.hide();$mason.append('"+rawHtml+"');var $grid = $('.grid').masonry({itemSelector: '.grid-item',percentPosition: true,columnWidth: 50});$grid.imagesLoaded().progress( function() {$grid.masonry();$mason.show();});});</script>");
@@ -108,11 +121,40 @@ module.exports = function(app, passport) {
             });
         });
     });
+    
+    app.get('/profile', isLoggedIn, function(req, res) {
+        var ObjectID=require('mongodb').ObjectID;
+        var id = req.user._id.toString();
+        fs.readFile((path.join(__dirname + '/../views/' + 'index.html')), function(err, result) {
+            var rawHtml = "";
+            if (err) throw err;
+            res.write(result);
+            db.collection("mongo").find({user: ObjectID(id)}).count({}, function (error, count) {
+                if(error) throw error;
+                if(count != 0) {
+                    db.collection("mongo").find({user: ObjectID(id)}, function(err, data) {
+                   if(err) throw err;
+                       var a = 0;
+                       data.forEach(function(doc) {
+                            rawHtml += '<div class="grid-item"><div class="thumbnail text-center"><img src="'+doc.imgLink+'"/><div class="caption"><h3>'+ doc.title +'</h3><p>'+ doc.description +'</p><form action="/delete/'+doc._id+'" method="post"><input type="Submit" class="btn btn-danger" id="delete" value="Delete Pin"></form><p>Created By: <a href="/profile">You</a></p></div></div></div>';
+                            a++;
+                            if(a == count) res.end("<script>$(document).ready(function() {var $mason=$('#masonry');$mason.hide();$mason.append('"+rawHtml+"');var $grid = $('.grid').masonry({itemSelector: '.grid-item',percentPosition: true,columnWidth: 50});$grid.imagesLoaded().progress( function() {$grid.masonry();$mason.show();});});</script>");
+                        });
+                    });
+                } else res.end();
+            });
+        });
+    });
 
 // posts =======================================================================
     app.post('/post', upload.single('exact'), function(req, res) {
         //res.json(req.file.path);
         var name = "";
+        var tags = [];
+        var tagField = req.body.tags.split(' ');
+        tagField.forEach(function(el, index) {
+            if(el.charAt(0) == "#") tags.push(el);
+        });
         
         if(req.user.facebook.name != undefined) { name=req.user.facebook.name;
         } else if(req.user.twitter.username != undefined) { name=req.user.twitter.username;
@@ -121,7 +163,7 @@ module.exports = function(app, passport) {
         console.log(name);
         
         function add(imgLink) {
-            db.collection('mongo').insertOne({username: name, user: req.user._id, title:req.body.title, description:req.body.description, imgLink: imgLink});
+            db.collection('mongo').insertOne({username: name, user: req.user._id, title:req.body.title, description:req.body.description, tags: tags, reportedBy: [], likes: [], imgLink: imgLink});
         }
         
         if(req.body.link) {
@@ -146,7 +188,12 @@ module.exports = function(app, passport) {
     });
 
 
-
+    app.post('/delete/:id', isLoggedIn, function(req, res) {
+        var ObjectID=require('mongodb').ObjectID;
+        var id = req.params.id.toString();
+        db.collection('mongo').remove({_id: ObjectID(id), user: req.user._id});
+        res.redirect('/profile');
+    });
 
 
 
