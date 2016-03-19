@@ -1,7 +1,5 @@
 module.exports = function(app, passport) {
     
-    //add app.get('/tags/:tag') and send all pins that have a certain tag in tags array
-    
     //work on likes and make users be able to unlike something.
     //add tags so users can search by tags.
     //make a report button so if 10 different people report something it gets removed.
@@ -56,10 +54,16 @@ module.exports = function(app, passport) {
                        var rawHtml = "";
                        data.forEach(function(doc) {
                             var tags = "";
+                            var like = "";
+                            if(req.isAuthenticated()) {
+                                if(doc.likes.indexOf(req.user._id.toString())  == -1) like = '<form action="/like/'+ doc._id +'" method="post"><button type="Submit" class="btn btn-primary"><span class="glyphicon glyphicon-thumbs-up"></span> Like</button></form>';
+                                else like = '<form action="/unlike/'+ doc._id +'" method="post"><button type="Submit" class="btn btn-warning"><span class="glyphicon glyphicon-thumbs-down"></span> UnLike</button></form>';
+                            }
+                            
                             doc.tags.forEach(function(el, index) {
-                                tags += '<a id="tag" href="/tags/' + el + '">' + el + ' </a>';
+                                tags += '<a id="tag" href="/tags/' + el.substr(1) + '">' + el + '</a> ';
                             });
-                            rawHtml += '<div class="grid-item"><div class="thumbnail text-center"><img src="'+doc.imgLink+'"/><div class="caption"><h3>'+ doc.title +'</h3><p>'+ doc.description +'</p><p><a href="#" class="btn btn-primary" role="button">Like</a></p><p>Created By: <a href="/user/'+doc.user+'">'+doc.username+'</a></p>'+ tags +'</div></div></div>';
+                            rawHtml += '<div class="grid-item"><div class="thumbnail text-center"><img src="'+doc.imgLink+'"/><div class="caption"><h3>'+ doc.title +'</h3><p>'+ doc.description +'</p>'+like+'<p>'+doc.likes.length+' Likes</p><p>Created By: <a href="/user/'+doc.user+'">'+doc.username+'</a></p>'+ tags +'</div></div></div>';
                             //console.log(doc.imgLink);
                             a++;
                             if(a == count) res.end("<script>$(document).ready(function() {var $mason=$('#masonry');$mason.hide();$mason.append('"+rawHtml+"');var $grid = $('.grid').masonry({itemSelector: '.grid-item',percentPosition: true,columnWidth: 50});$grid.imagesLoaded().progress( function() {$grid.masonry();$mason.show();});});</script>");
@@ -112,7 +116,11 @@ module.exports = function(app, passport) {
                    if(err) throw err;
                        var a = 0;
                        data.forEach(function(doc) {
-                            rawHtml += '<div class="grid-item"><div class="thumbnail text-center"><img src="'+doc.imgLink+'"/><div class="caption"><h3>'+ doc.title +'</h3><p>'+ doc.description +'</p><p><a href="#" class="btn btn-primary" role="button">Like</a></p><p>Created By: <a href="/user/'+doc.user+'">'+doc.username+'</a></p></div></div></div>';
+                            var tags = "";
+                            doc.tags.forEach(function(el, index) {
+                                tags += '<a id="tag" href="/tags/' + el.substr(1) + '">' + el + '</a> ';
+                            });
+                            rawHtml += '<div class="grid-item"><div class="thumbnail text-center"><img src="'+doc.imgLink+'"/><div class="caption"><h3>'+ doc.title +'</h3><p>'+ doc.description +'</p><p><a href="#" class="btn btn-primary" role="button">Like</a></p><p>Created By: <a href="/user/'+doc.user+'">'+doc.username+'</a></p>'+ tags +'</div></div></div>';
                             a++;
                             if(a == count) res.end("<script>$(document).ready(function() {var $mason=$('#masonry');$mason.hide();$mason.append('"+rawHtml+"');var $grid = $('.grid').masonry({itemSelector: '.grid-item',percentPosition: true,columnWidth: 50});$grid.imagesLoaded().progress( function() {$grid.masonry();$mason.show();});});</script>");
                         });
@@ -145,6 +153,32 @@ module.exports = function(app, passport) {
             });
         });
     });
+    
+    app.get('/tags/:tag', function(req, res) {
+        var id = '#' + req.params.tag;
+       console.log(id);
+       var address = "secondaryIndex.html";
+        if(req.isAuthenticated()) address = "index.html";
+        fs.readFile((path.join(__dirname + '/../views/' + address)), function(err, result) {
+            var rawHtml = "";
+            if (err) throw err;
+            res.write(result);
+            db.collection("mongo").find({tags: {$in: [id]}}).count({}, function (error, count) {
+                if(error) throw error;
+                if(count != 0) {
+                    db.collection("mongo").find({tags: {$in: [id]}}, function(err, data) {
+                   if(err) throw err;
+                       var a = 0;
+                       data.forEach(function(doc) {
+                            rawHtml += '<div class="grid-item"><div class="thumbnail text-center"><img src="'+doc.imgLink+'"/><div class="caption"><h3>'+ doc.title +'</h3><p>'+ doc.description +'</p><p><a href="#" class="btn btn-primary" role="button">Like</a></p><p>Created By: <a href="/user/'+doc.user+'">'+doc.username+'</a></p></div></div></div>';
+                            a++;
+                            if(a == count) res.end("<script>$(document).ready(function() {var $mason=$('#masonry');$mason.hide();$mason.append('"+rawHtml+"');var $grid = $('.grid').masonry({itemSelector: '.grid-item',percentPosition: true,columnWidth: 50});$grid.imagesLoaded().progress( function() {$grid.masonry();$mason.show();});});</script>");
+                        });
+                    });
+                } else res.end();
+            });
+        });
+    });
 
 // posts =======================================================================
     app.post('/post', upload.single('exact'), function(req, res) {
@@ -166,7 +200,9 @@ module.exports = function(app, passport) {
             db.collection('mongo').insertOne({username: name, user: req.user._id, title:req.body.title, description:req.body.description, tags: tags, reportedBy: [], likes: [], imgLink: imgLink});
         }
         
-        if(req.body.link) {
+        if(!req.body.link && !req.file) {
+            console.log("NO IMAGE");
+        } else if(req.body.link) {
             add(req.body.link);
         } else {
             var filepath = "";
@@ -195,7 +231,19 @@ module.exports = function(app, passport) {
         res.redirect('/profile');
     });
 
+    app.post('/like/:id', isLoggedIn, function(req, res) {
+        var id = req.params.id;
+        var ObjectID=require('mongodb').ObjectID;
+        db.collection('mongo').update({_id: ObjectID(id), likes: {$nin: [req.user._id.toString()]}}, { $push: {likes: req.user._id.toString() }  });
+        res.redirect('back');
+    });
 
+    app.post('/unlike/:id', isLoggedIn, function(req, res) {
+        var id = req.params.id;
+        var ObjectID=require('mongodb').ObjectID;
+        db.collection('mongo').update({_id: ObjectID(id), likes: { $in: [req.user._id.toString()]}}, { $pull: {likes: req.user._id.toString() }  });
+        res.redirect('back');
+    });
 
 
 
