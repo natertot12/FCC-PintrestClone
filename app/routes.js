@@ -1,6 +1,11 @@
 module.exports = function(app, passport) {
     
-    //make a app.get for /user/:userid and send all posts made by that req.user._id
+    //make user be able to delete his/her own posts.
+    //work on likes and make users be able to unlike something.
+    //add tags so users can search by tags.
+    //make a report button so if 10 different people report something it gets removed.
+    //change the way it loads the masonry objects and add animations.
+    
     
     var multer = require("multer"),
     mongodb = require("mongodb"),
@@ -20,8 +25,8 @@ module.exports = function(app, passport) {
         cb(null, (err ? undefined : raw.toString('hex') ) + ext);
       });
     }
-
 })});
+    var User = require('./models/user');
     Object.size=function(obj){var size=0,key;for(key in obj){if(obj.hasOwnProperty(key))size++;}return size;};
 // normal routes ===============================================================
         mongodb.connect(mongoUrl, function(err, db) {
@@ -66,7 +71,43 @@ module.exports = function(app, passport) {
         var id = req.params.imageID;
         res.sendFile(path.join(__dirname + '/../images/' + id));
     });
+    app.get('/user/images/:imageID', function(req, res) {
+        var id = req.params.imageID;
+        res.sendFile(path.join(__dirname + '/../images/' + id));
+    });
 
+
+    app.get('/user/:userID', function(req, res) {
+       var ObjectID=require('mongodb').ObjectID;
+       var id = req.params.userID.toString();
+       console.log(id);
+       var address = "secondaryIndex.html";
+        if(req.isAuthenticated()) address = "index.html";
+        fs.readFile((path.join(__dirname + '/../views/' + address)), function(err, result) {
+            var rawHtml = "";
+            if (err) throw err;
+            res.write(result);
+            /*
+            User.find({_id: ObjectID(id)}, function(err, data) {
+                if(err) throw err;
+                if(data != null) res.write('<script>$(document).ready(function() {$(body).prepend("<div class="container"><div class="well text-center"><h3>'+ data._id + '$apos;s Pins</h3></div></div>");});</script>');
+            });*/
+            db.collection("mongo").find({user: ObjectID(id)}).count({}, function (error, count) {
+                if(error) throw error;
+                if(count != 0) {
+                    db.collection("mongo").find({user: ObjectID(id)}, function(err, data) {
+                   if(err) throw err;
+                       var a = 0;
+                       data.forEach(function(doc) {
+                            rawHtml += '<div class="grid-item"><div class="thumbnail text-center"><img src="'+doc.imgLink+'"/><div class="caption"><h3>'+ doc.title +'</h3><p>'+ doc.description +'</p><p><a href="#" class="btn btn-primary" role="button">Like</a></p><p>Created By: <a href="/user/'+doc.user+'">'+doc.username+'</a></p></div></div></div>';
+                            a++;
+                            if(a == count) res.end("<script>$(document).ready(function() {var $mason=$('#masonry');$mason.hide();$mason.append('"+rawHtml+"');var $grid = $('.grid').masonry({itemSelector: '.grid-item',percentPosition: true,columnWidth: 50});$grid.imagesLoaded().progress( function() {$grid.masonry();$mason.show();});});</script>");
+                        });
+                    });
+                } else res.end();
+            });
+        });
+    });
 
 // posts =======================================================================
     app.post('/post', upload.single('exact'), function(req, res) {
@@ -79,17 +120,26 @@ module.exports = function(app, passport) {
         } else { name = req.user.local.username;}
         console.log(name);
         
-        var filepath = "";
-        for(var a = 0; a < req.file.path.length; a++) {
-            filepath += req.file.path[a];
+        function add(imgLink) {
+            db.collection('mongo').insertOne({username: name, user: req.user._id, title:req.body.title, description:req.body.description, imgLink: imgLink});
         }
-        var fileType = req.file.mimetype.split("/");
-        fileType = fileType[fileType.length - 1];
-        console.log(fileType);
-        var goodFileTypes = ["jpeg", "png", "gif", ];
-        if(goodFileTypes.indexOf(fileType) != -1) {
-            console.log("The path for that new file is " +  filepath);
-            db.collection('mongo').insertOne({username: name, user: req.user._id, title:req.body.title, description:req.body.description, imgLink: filepath});
+        
+        if(req.body.link) {
+            add(req.body.link);
+        } else {
+            var filepath = "";
+            for(var a = 0; a < req.file.path.length; a++) {
+                filepath += req.file.path[a];
+            }
+            var fileType = req.file.mimetype.split("/");
+            fileType = fileType[fileType.length - 1];
+            console.log(fileType);
+            var goodFileTypes = ["jpeg", "png", "gif", ];
+            if(goodFileTypes.indexOf(fileType) != -1) {
+                console.log("The path for that new file is " +  filepath);
+                //db.collection('mongo').insertOne({username: name, user: req.user._id, title:req.body.title, description:req.body.description, imgLink: filepath});
+                add(filepath);
+            }
         }
         res.redirect('/');
         //res.json(req.file.filename);
@@ -200,7 +250,7 @@ module.exports = function(app, passport) {
 // used to unlink accounts. for social accounts, just remove the token
 // for local account, remove email and password
 // user account will stay active in case they want to reconnect in the future
-    // local -----------------------------------
+    // local ------------------------------------
     app.get('/unlink/local', isLoggedIn, function(req, res) {
         var user            = req.user;
         user.local.email    = undefined;
@@ -210,7 +260,7 @@ module.exports = function(app, passport) {
             res.redirect('/');
         });
     });
-    // facebook -------------------------------
+    // facebook --------------------------------
     app.get('/unlink/facebook', isLoggedIn, function(req, res) {
         var user            = req.user;
         user.facebook.token = undefined;
@@ -219,7 +269,7 @@ module.exports = function(app, passport) {
             res.redirect('/');
         });
     });
-    // twitter --------------------------------
+    // twitter ---------------------------------
     app.get('/unlink/twitter', isLoggedIn, function(req, res) {
         var user           = req.user;
         user.twitter.token = undefined;
@@ -228,22 +278,22 @@ module.exports = function(app, passport) {
             res.redirect('/');
         });
     });
-    // google ---------------------------------
+    // google ----------------------------------
     app.get('/unlink/google', isLoggedIn, function(req, res) {
         var user          = req.user;
         user.google.token = undefined;
         user.save(function(err) {
             if(err) throw err;
-            res.redirect('/');
-        });
+            res.redirect('/'); 
+        }); 
     });
         });
-};
-
-// route middleware to ensure user is logged in
-function isLoggedIn(req, res, next) {
-    if (req.isAuthenticated())
-        return next();
-
-    res.redirect('/');
-}
+}; 
+ 
+// route middleware to ensure user is logged in 
+function isLoggedIn(req, res, next) { 
+    if (req.isAuthenticated()) 
+        return next(); 
+ 
+    res.redirect('/'); 
+} 

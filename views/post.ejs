@@ -7,8 +7,8 @@
   <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
   <script src="https://npmcdn.com/masonry-layout@4.0/dist/masonry.pkgd.min.js"></script>
   <style>
-    img {width: 80%;}
-    .per80 {width: 80%;}
+    img {max-width: 80%;}
+    .per80 {max-width: 80%;}
   </style>
   <script>
     $(function () {
@@ -18,13 +18,23 @@
             var reader = new FileReader();
             reader.onload = imageIsLoaded;
             reader.readAsDataURL(this.files[0]);
-            $('#file').removeClass('btn-warning').addClass('btn-success');
         }
     });
+    $("#link").change(function() {
+      if($('#link').val() == "") {
+        $('#myImg').hide();
+        $('#file').removeClass('btn-success').addClass('btn-warning');
+      } else {
+        $('#myImg').attr("src", $('#link').val());
+        $('#file').removeClass('btn-warning').addClass('btn-success').width($('#myImg').width());
+        $('#myImg').show();
+      }
+    })
 });
 
 function imageIsLoaded(e) {
     $('#myImg').attr('src', e.target.result);
+    $('#file').removeClass('btn-warning').addClass('btn-success').width($('#myImg').width());
     $('#myImg').show();
 };
   </script>
