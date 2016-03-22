@@ -50,10 +50,10 @@
                         <strong>email</strong>: <%= user.local.email %><br>
                         <strong>username</strong>: <%= user.local.username %>
                     </p>
-                    
+                    <a href="/update" class="btn btn-default" id="click">Update</a>
                     <a href="/unlink/local" class="btn btn-danger" id="delete">Delete</a>
                 <% } else { %>
-                    <a href="/connect/local" class="btn btn-default" id="connect">Connect Local</a>
+                    <a href="/connect/local" class="btn btn-default" id="click">Connect Local</a>
                 <% } %>
 
             </div>
@@ -67,15 +67,13 @@
                 <!-- check if the user has this token (is the user authenticated with this social account) -->
                 <% if (user.facebook.token) { %>
                     <p>
-                        <strong>id</strong>: <%= user.facebook.id %><br>
-                        <strong>token</strong>: <%= user.facebook.token %><br>
                         <strong>email</strong>: <%= user.facebook.email %><br>
                         <strong>name</strong>: <%= user.facebook.name %><br>
                     </p>
 
                     <a href="/unlink/facebook" class="btn btn-danger" id="delete">Delete</a>
                 <% } else { %>
-                    <a href="/connect/facebook" class="btn btn-primary" id="connect">Connect Facebook</a>
+                    <a href="/connect/facebook" class="btn btn-primary" id="click">Connect Facebook</a>
                 <% } %>
 
             </div>
@@ -89,15 +87,13 @@
 
                 <% if (user.twitter.token) { %>
                     <p>
-                        <strong>id</strong>: <%= user.twitter.id %><br>
-                        <strong>token</strong>: <%= user.twitter.token %><br>
                         <strong>display name</strong>: <%= user.twitter.displayName %><br>
                         <strong>username</strong>: <%= user.twitter.username %>
                     </p>
 
                     <a href="/unlink/twitter" class="btn btn-danger" id="delete">Delete</a>
                 <% } else { %>
-                    <a href="/connect/twitter" class="btn btn-info" id="connect">Connect Twitter</a>
+                    <a href="/connect/twitter" class="btn btn-info" id="click">Connect Twitter</a>
                 <% } %>
 
             </div>
@@ -110,15 +106,13 @@
 
                 <% if (user.google.token) { %>
                     <p>
-                        <strong>id</strong>: <%= user.google.id %><br>
-                        <strong>token</strong>: <%= user.google.token %><br>
                         <strong>email</strong>: <%= user.google.email %><br>
                         <strong>name</strong>: <%= user.google.name %>
                     </p>
 
                     <a href="/unlink/google" class="btn btn-danger" id="delete">Delete</a>
                 <% } else { %>
-                    <a href="/connect/google" class="btn btn-danger" id="connect">Connect Google</a>
+                    <a href="/connect/google" class="btn btn-danger" id="click">Connect Google</a>
                 <% } %>
 
             </div>
@@ -155,10 +149,19 @@
                   <% } %>
                   <p><%= doc.likes.length %> Likes</p>
                 </div>
+                
                 <div class="repost">
-                    <form action="/delete/<%= doc._id%>" method="post">
-                        <input type="Submit" class="btn btn-danger" id="delete" value="Delete Pin">
-                    </form>
+                    
+                    <% if(doc.repostedBy.indexOf(user._id.toString()) == -1){ %>
+                        <form action="/delete/<%= doc._id%>" method="post">
+                            <input type="Submit" class="btn btn-danger" id="delete" value="Delete Pin">
+                        </form>
+                    <% } else { %>
+                        <form action="/unrepublish/<%= doc._id%>" method="post" class="repost">
+                            <button type="Submit" class="btn btn-warning" id="repostButton"><span class="glyphicon glyphicon-refresh"></span> UnRepost</button>
+                        </form>
+                    <% } %>
+                    
                     <p><%= doc.repostedBy.length %> Reposts</p>
                 </div>
               </div>
@@ -171,7 +174,11 @@
                   <% } %>
                 </p>
               <% } %>
-              <p>Posted by <a href="/profile">You</a></p>
+              <% if(doc.repostedBy.indexOf(user._id.toString()) == -1){ %>
+                  <p>Posted by <a href="/profile">You</a></p>
+              <% } else { %>
+                  <p>Original Poster <a href="/user/<%=doc.user%>"><%=doc.username%></a></p>
+              <% } %>
             </div>
           </div>
         </div>

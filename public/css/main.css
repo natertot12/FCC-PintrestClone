@@ -42,7 +42,7 @@
 	-webkit-animation-iteration-count: 1;
 	-webkit-animation-timing-function: linear;
 }
-#connect:hover {
+#click:hover {
     -webkit-animation-name: thumb;
 	-webkit-animation-duration: 200ms;
 	-webkit-transform-origin:50% 50%;
@@ -95,4 +95,18 @@
 
 .inline {
     display: inline-block;
+}
+
+.dropdown-menu {
+    width: 300px;
+    height: 275px;
+}
+
+.login-button {
+    margin-top: 10px;
+    display: inline-block;
+}
+
+.grid {
+    width: 100%;
 }

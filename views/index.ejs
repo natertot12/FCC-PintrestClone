@@ -29,8 +29,12 @@
   
   <div class="page-header text-center">
     <h1><%= title %></h1>
+    <br>
+    <% if(description){ %>
+      <h4><%= description %></h4>
+    <% } %>
   </div>
-  
+
   <div class="container grid" id="masonry">
     <% data.forEach(function(doc){ %>
       <div class="grid-item">

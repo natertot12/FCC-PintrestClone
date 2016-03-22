@@ -1,20 +1,11 @@
 module.exports = function(app, passport) {
     
-    //add a way to change username like book
     
-    //fix /user/ /profile/ trying to get things like /user/css/main.css to just /css/main.css
-    //add a way to republish things                                             add showing your republishes like you posted it.
     //add a way to follow people and look at your subscriptions
         //add a way to view your subscribers and subscriptions
-    //add titles to all pages fix it in you mainPage()
-    //change the way it loads the masonry objects and add animations.
-        //get rid of margin on the sides of current to make it full screen masonry
-    //configure twitter facebook google plus.
-        //add link local fb google twitter to profile page
-        //add fb google twitter to secondaryIndex navbar
-    
-    
-    
+    //masonry
+        //add a way to load more posts when the user scrolls down
+
     //future css
     
     //add more color.
@@ -44,205 +35,66 @@ module.exports = function(app, passport) {
 // normal routes ===============================================================
         mongodb.connect(mongoUrl, function(err, db) {
             if(err) throw err;
-            
-    
-    /*function mainPage(res, req, loggedIn, profile, profileID, tag, tagID, user, userID, skipAmount) {
-        var address = "secondaryIndex.html";
-        var query = {};
-        var ObjectID=require('mongodb').ObjectID;
-        
-        if(loggedIn) address = "index.html";
-        
-        if(profile) query = {user: ObjectID(profileID)};
-        else if(tag) query = {tags: {$in: [tagID]}};
-        else if(user) query = {user: ObjectID(userID)};
-        
-        fs.readFile((path.join(__dirname + '/../views/' + address)), function(err, result) {
-            if (err) throw err;
-            res.write(result);
-            *
-            var count = 0;
-            db.collection("mongo").find(query).limit(10).count(function(err, c) {
-                if(err) throw err;
-                count = c;
-            });*
-            
-            db.collection("mongo").find(query).count({}, function (error, count) {
-            //var collection = db.collection("mongo").find(query).limit(10);
-                if(error) throw error;
-            //collection.forEach(function(data) {
-                //console.log(data);
-                if(count != 0) {
-                    db.collection("mongo").find(query, function(err, data) {
-                   if(err) throw err;
-                       var a = 0;
-                       var rawHtml = "";
-                       data.forEach(function(doc) {
-                            var tags = "";
-                            var like = "";
-                            var repost = "";
-                            var report = "";
-                            if(loggedIn) {
-                                if(doc.repostedBy.indexOf(req.user._id.toString()) == -1) repost = '<div class="repost"><form action="/republish/'+ doc._id +'" method="post" class="repost"><button type="Submit" class="btn btn-success" id="repostButton"><span class="glyphicon glyphicon-refresh"></span> Repost</button></form><p>'+ doc.repostedBy.length +' Reposts</p></div>';
-                                else repost = '<div class="repost"><form action="/unrepublish/'+ doc._id +'" method="post" class="repost"><button type="Submit" class="btn btn-warning" id="repostButton"><span class="glyphicon glyphicon-refresh"></span> UnRepost</button></form><p>'+ doc.repostedBy.length +' Reposts</p></div>';
-                                //if(doc.likes.indexOf(req.user._id.toString())  == -1) like = '<div><div class="row"><div class="like"><form action="/like/'+ doc._id +'" method="post" class="like"><button type="Submit" class="btn btn-primary" id="like"><span class="glyphicon glyphicon-thumbs-up"></span> Like</button></form><p>'+ doc.likes.length +' Likes</p></div><div class="repost"><form action="/republish/'+ doc._id +'" method="post" class="repost"><button type="Submit" class="btn btn-success" id="repostButton"><span class="glyphicon glyphicon-refresh"></span> Repost</button></form><p>'+ doc.repostedBy.length +' Reposts</p></div></div></div>';
-                                //else like = '<div><div class="row"><div class="like"><form action="/unlike/'+ doc._id +'" method="post" class="like"><button type="Submit" class="btn btn-warning" id="like"><span class="glyphicon glyphicon-thumbs-down"></span> UnLike</button></form><p>'+ doc.likes.length +' Likes</p></div><div class="repost"><form action="/republish/'+ doc._id +'" method="post" class="repost"><button type="Submit" class="btn btn-success" id="repostButton"><span class="glyphicon glyphicon-refresh"></span> Repost</button></form><p>'+ doc.repostedBy.length +' Reposts</p></div></div></div>';
-                                if(doc.likes.indexOf(req.user._id.toString())  == -1) like = '<div><div class="row"><div class="like"><form action="/like/'+ doc._id +'" method="post" class="like"><button type="Submit" class="btn btn-primary" id="like"><span class="glyphicon glyphicon-thumbs-up"></span> Like</button></form><p>'+ doc.likes.length +' Likes</p></div>'+ repost +'</div></div>';
-                                else like = '<div><div class="row"><div class="like"><form action="/unlike/'+ doc._id +'" method="post" class="like"><button type="Submit" class="btn btn-warning" id="like"><span class="glyphicon glyphicon-thumbs-down"></span> UnLike</button></form><p>'+ doc.likes.length +' Likes</p></div>'+ repost +'</div></div>';
-                                report = '<form action="/report/'+ doc._id +'" method="post" id="report"><button class="btn btn-sm btn-danger" type="Submit" id="reportButton"><span class="glyphicon glyphicon-bell" id="reportBell"></span> REPORT</button></form>';
-                            }
-                            doc.tags.forEach(function(el, index) {
-                                tags += '<a id="tag" href="/tags/' + el.substr(1) + '">' + el + '</a> ';
-                            });
-                            if(!profile) rawHtml += '<div class="grid-item"><div class="thumbnail text-center"><img src="'+doc.imgLink+'"/><div class="caption"><h3>'+ doc.title +'</h3><p>'+ doc.description +'</p>'+like+'<div><p>Tags: '+ tags +'</p><p>Posted by <a href="/user/'+doc.user+'">'+ doc.username +'</a></p>'+ report +'</div></div></div></div>';
-                            else rawHtml += '<div class="grid-item"><div class="thumbnail text-center"><img src="'+doc.imgLink+'" onerror="imgError(this);"/><div class="caption"><h3>'+ doc.title +'</h3><p>'+ doc.description +'</p><form action="/delete/'+doc._id+'" method="post"><input type="Submit" class="btn btn-danger" id="delete" value="Delete Pin"></form><br>'+like+'<p>'+doc.likes.length+' Likes</p><p>Created By: You</p>'+ tags +'</div></div></div>';
-                            a++;
-                            if(a == count) res.end("<script>$(document).ready(function() {var $mason=$('#masonry');$mason.hide();$mason.append('"+rawHtml+"');var $grid = $('.grid').masonry({itemSelector: '.grid-item',percentPosition: true,columnWidth: 50});$grid.imagesLoaded().progress( function() {$grid.masonry();$mason.show();});});</script>");
-                        });
-                    });
-                } else res.end();
-            });
-        });
-        
-    }*/
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+
     function loadMasonry(req, res, type, id) {
         var query = {};
         var ObjectID=require('mongodb').ObjectID;
         var title = "Welcome to Pin !T";
-        
+        var description;
         if(type == 'tag') {
             query = {tags: {$in: [id]}};
             title = "Tag " + id;
         } else if(type == 'user') {
             query = {user: ObjectID(id)};
-            title = "User ";
-            
+            title = "";
             User.findOne({_id: ObjectID(id)}, function(err, data) {
                 if(err) throw err;
                 if(data != null) {
-                    if(data.local.username) {
-                        title += data.local.username;
-                    } else if(data.facebook.name) {
+                    if(data.facebook.name) {
                         title += data.facebook.name;
                     } else if(data.twitter.username) {
-                        title += data.twitter.username;
+                        title += data.twitter.displayName;
                     } else if(data.google.name) {
                         title += data.google.name;
+                    } else if(data.local.username) {
+                        title += "User " + data.local.username;
                     }
+                    description = data.description;
                 }
             });
         }
-        
-        
         var docs = [];
-        //db.collection("mongo").find(query, function(err, data) {
         var data = db.collection("mongo").find(query).limit(10);
         db.collection('mongo').find(query).limit(10).count(function(err, num) {
             if(err) throw err;
-            var a = 0; 
-            data.forEach(function(doc) {
-                docs.push(doc);
-                a++;
-                if(a == num) {
-                    //console.log(docs);
-                    if(req.isAuthenticated()) {
-                        res.render('index.ejs', {data: docs, title: title, user: req.user});
-                    } else {
-                        res.render('index2.ejs', {data: docs, title: title});
+            var a = 0;
+            if(num != 0) {
+                data.forEach(function(doc) {
+                    docs.push(doc);
+                    a++;
+                    if(a == num) {
+                        //console.log(docs);
+                        if(req.isAuthenticated()) {
+                            res.render('index.ejs', {data: docs, title: title, user: req.user, description: description});
+                        } else {
+                            res.render('index2.ejs', {data: docs, title: title, description: description});
+                        }
                     }
+                });
+            } else {
+                if(req.isAuthenticated()) {
+                    res.render('index.ejs', {data: docs, title: title, user: req.user, description: description});
+                } else {
+                    res.render('index2.ejs', {data: docs, title: title, description: description});
                 }
-            });
+            }
         });
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
     app.get('/', function(req, res) {
-        /*
-        var address = "secondaryIndex.html";
-        if(req.isAuthenticated()) address = "index.html";
-        fs.readFile((path.join(__dirname + '/../views/' + address)), function(err, result) {
-            if (err) throw err;
-            res.write(result);
-            db.collection("mongo").find({}).count({}, function (error, count) {
-                if(error) throw error;
-                if(count != 0) {
-                    db.collection("mongo").find({}, function(err, data) {
-                   if(err) throw err;
-                       var a = 0;
-                       var rawHtml = "";
-                       data.forEach(function(doc) {
-                            var tags = "";
-                            var like = "";
-                            if(req.isAuthenticated()) {
-                                if(doc.likes.indexOf(req.user._id.toString())  == -1) like = '<form action="/like/'+ doc._id +'" method="post"><button type="Submit" class="btn btn-primary"><span class="glyphicon glyphicon-thumbs-up"></span> Like</button></form>';
-                                else like = '<form action="/unlike/'+ doc._id +'" method="post"><button type="Submit" class="btn btn-warning"><span class="glyphicon glyphicon-thumbs-down"></span> UnLike</button></form>';
-                            }
-                            
-                            doc.tags.forEach(function(el, index) {
-                                tags += '<a id="tag" href="/tags/' + el.substr(1) + '">' + el + '</a> ';
-                            });
-                            rawHtml += '<div class="grid-item"><div class="thumbnail text-center"><img src="'+doc.imgLink+'"/><div class="caption"><h3>'+ doc.title +'</h3><p>'+ doc.description +'</p>'+like+'<p>'+doc.likes.length+' Likes</p><p>Created By: <a href="/user/'+doc.user+'">'+doc.username+'</a></p>'+ tags +'</div></div></div>';
-                            //console.log(doc.imgLink);
-                            a++;
-                            if(a == count) res.end("<script>$(document).ready(function() {var $mason=$('#masonry');$mason.hide();$mason.append('"+rawHtml+"');var $grid = $('.grid').masonry({itemSelector: '.grid-item',percentPosition: true,columnWidth: 50});$grid.imagesLoaded().progress( function() {$grid.masonry();$mason.show();});});</script>");
-                        });
-                    });
-                } else res.end();
-            });
-        });
-        */
-        //mainPage(res, req, req.isAuthenticated(), false, "", false, "", false, "");
-        //res.redirect('/0');
         loadMasonry(req, res, "", "");
     });
-    /*
-    app.get('/:num', function(req, res) {
-       var num = req.params.num || 0;
-       mainPage(res, req, req.isAuthenticated(), false, "", false, "", false, "");
-    });*/
     
     app.get('/post', isLoggedIn, function(req, res) {
        res.render('post.ejs'); 
@@ -268,71 +120,14 @@ module.exports = function(app, passport) {
        var id = req.params.userID.toString();
        if(req.isAuthenticated() && id == req.user._id.toString()) {
             res.redirect('/profile');
-       } else loadMasonry(req, res, 'user', id);           //(res, req, req.isAuthenticated(), false, "", false, "", true, id);
-       /*
-       console.log(id);
-       var address = "secondaryIndex.html";
-        if(req.isAuthenticated()) address = "index.html";
-        fs.readFile((path.join(__dirname + '/../views/' + address)), function(err, result) {
-            var rawHtml = "";
-            if (err) throw err;
-            res.write(result);
-            db.collection("mongo").find({user: ObjectID(id)}).count({}, function (error, count) {
-                if(error) throw error;
-                if(count != 0) {
-                    db.collection("mongo").find({user: ObjectID(id)}, function(err, data) {
-                   if(err) throw err;
-                       var a = 0;
-                       data.forEach(function(doc) {
-                            var tags = "";
-                            doc.tags.forEach(function(el, index) {
-                                tags += '<a id="tag" href="/tags/' + el.substr(1) + '">' + el + '</a> ';
-                            });
-                            rawHtml += '<div class="grid-item"><div class="thumbnail text-center"><img src="'+doc.imgLink+'"/><div class="caption"><h3>'+ doc.title +'</h3><p>'+ doc.description +'</p><p><a href="#" class="btn btn-primary" role="button">Like</a></p><p>Created By: <a href="/user/'+doc.user+'">'+doc.username+'</a></p>'+ tags +'</div></div></div>';
-                            a++;
-                            if(a == count) res.end("<script>$(document).ready(function() {var $mason=$('#masonry');$mason.hide();$mason.append('"+rawHtml+"');var $grid = $('.grid').masonry({itemSelector: '.grid-item',percentPosition: true,columnWidth: 50});$grid.imagesLoaded().progress( function() {$grid.masonry();$mason.show();});});</script>");
-                        });
-                    });
-                } else res.end();
-            });
-        });
-        */
+       } else loadMasonry(req, res, 'user', id);
     });
     
     app.get('/profile', isLoggedIn, function(req, res) {
-        var id = req.user._id.toString();
-        /*
-        fs.readFile((path.join(__dirname + '/../views/' + 'index.html')), function(err, result) {
-            var rawHtml = "";
-            if (err) throw err;
-            res.write(result);
-            db.collection("mongo").find({user: ObjectID(id)}).count({}, function (error, count) {
-                if(error) throw error;
-                if(count != 0) {
-                    db.collection("mongo").find({user: ObjectID(id)}, function(err, data) {
-                   if(err) throw err;
-                       var a = 0;
-                       data.forEach(function(doc) {
-                            rawHtml += '<div class="grid-item"><div class="thumbnail text-center"><img src="'+doc.imgLink+'"/><div class="caption"><h3>'+ doc.title +'</h3><p>'+ doc.description +'</p><form action="/delete/'+doc._id+'" method="post"><input type="Submit" class="btn btn-danger" id="delete" value="Delete Pin"></form><p>Created By: <a href="/profile">You</a></p></div></div></div>';
-                            a++;
-                            if(a == count) res.end("<script>$(document).ready(function() {var $mason=$('#masonry');$mason.hide();$mason.append('"+rawHtml+"');var $grid = $('.grid').masonry({itemSelector: '.grid-item',percentPosition: true,columnWidth: 50});$grid.imagesLoaded().progress( function() {$grid.masonry();$mason.show();});});</script>");
-                        });
-                    });
-                } else res.end();
-            });
-        });
-        */
-        //mainPage(res, req, req.isAuthenticated(), true, id, false, "", false, "");
-        
-        //res.render('profile.ejs', {user: req.user});
-        
-        
-        
-        
         var ObjectID=require('mongodb').ObjectID;
         var docs = [];
-        var data = db.collection("mongo").find({user: ObjectID(req.user._id.toString())}).limit(10);
-        db.collection('mongo').find({user: ObjectID(req.user._id.toString())}).limit(10).count(function(err, num) {
+        var data = db.collection("mongo").find({$or: [{user: ObjectID(req.user._id.toString())}, {repostedBy: { $in: [req.user._id.toString()]}}  ]}).limit(10);
+        db.collection('mongo').find({$or: [{user: ObjectID(req.user._id.toString())}, {repostedBy: { $in: [req.user._id.toString()]}}  ]}).limit(10).count(function(err, num) {
             if(err) throw err;
             var a = 0;
             if(num != 0) {
@@ -343,43 +138,14 @@ module.exports = function(app, passport) {
                 });
             } else res.render('profile.ejs', {data: docs, user: req.user});
         });
-        
-        
-        
-        
-        
-        
-        
-        
+    });
+    
+    app.get('/update', function(req, res) {
+       res.render('update'); 
     });
     
     app.get('/tags/:tag', function(req, res) {
         var id = '#'+req.params.tag;
-        /*
-       console.log(id);
-       var address = "secondaryIndex.html";
-        if(req.isAuthenticated()) address = "index.html";
-        fs.readFile((path.join(__dirname + '/../views/' + address)), function(err, result) {
-            var rawHtml = "";
-            if (err) throw err;
-            res.write(result);
-            db.collection("mongo").find({tags: {$in: [id]}}).count({}, function (error, count) {
-                if(error) throw error;
-                if(count != 0) {
-                    db.collection("mongo").find({tags: {$in: [id]}}, function(err, data) {
-                   if(err) throw err;
-                       var a = 0;
-                       data.forEach(function(doc) {
-                            rawHtml += '<div class="grid-item"><div class="thumbnail text-center"><img src="'+doc.imgLink+'"/><div class="caption"><h3>'+ doc.title +'</h3><p>'+ doc.description +'</p><p><a href="#" class="btn btn-primary" role="button">Like</a></p><p>Created By: <a href="/user/'+doc.user+'">'+doc.username+'</a></p></div></div></div>';
-                            a++;
-                            if(a == count) res.end("<script>$(document).ready(function() {var $mason=$('#masonry');$mason.hide();$mason.append('"+rawHtml+"');var $grid = $('.grid').masonry({itemSelector: '.grid-item',percentPosition: true,columnWidth: 50});$grid.imagesLoaded().progress( function() {$grid.masonry();$mason.show();});});</script>");
-                        });
-                    });
-                } else res.end();
-            });
-        });
-        */
-        //mainPage(res, req, req.isAuthenticated(), false, "", true, id, false, "");
         loadMasonry(req, res, 'tag', id);
     });
 
@@ -390,19 +156,17 @@ module.exports = function(app, passport) {
         var tags = [];
         var tagField = req.body.tags.split(' ');
         tagField.forEach(function(el, index) {
-            if(el.charAt(0) == "#") tags.push(el);
+            if(el.charAt(0) == "#") tags.push(el.toLowerCase());
         });
         
         if(req.user.facebook.name != undefined) { name=req.user.facebook.name;
         } else if(req.user.twitter.username != undefined) { name=req.user.twitter.username;
         } else if(req.user.google.name != undefined) { name=req.user.google.name;
         } else { name = req.user.local.username;}
-        console.log(name);
-        
+        //console.log(name);
         function add(imgLink) {
             db.collection('mongo').insertOne({username: name, user: req.user._id, title:req.body.title, description:req.body.description, tags: tags, repostedBy: [], reportedBy: [], likes: [], imgLink: imgLink});
         }
-        
         if(req.file) {
             var filepath = "";
             for(var a = 0; a < req.file.path.length; a++) {
@@ -449,7 +213,6 @@ module.exports = function(app, passport) {
     app.post('/republish/:id', isLoggedIn, function(req, res) {
         var id = req.params.id;
         var ObjectID=require('mongodb').ObjectID;
-        //User.findOneAndUpdate({_id: ObjectID(req.user._id), reposts: {$nin: [req.user._id.toString()]}}, {$push: {reposts: id.toString()}});
         db.collection('mongo').update({_id: ObjectID(id), repostedBy: {$nin: [req.user._id.toString()]}}, { $push: {repostedBy: req.user._id.toString() }  });
         res.redirect('back');
     });
@@ -457,7 +220,6 @@ module.exports = function(app, passport) {
     app.post('/unrepublish/:id', isLoggedIn, function(req, res) {
         var id = req.params.id;
         var ObjectID=require('mongodb').ObjectID;
-        //User.findOneAndUpdate({_id: ObjectID(req.user._id), reposts: { $in: [req.user._id.toString()]}}, {$push: {reposts: id.toString()}});
         db.collection('mongo').update({_id: ObjectID(id), repostedBy: { $in: [req.user._id.toString()]}}, { $pull: {repostedBy: req.user._id.toString() }  });
         res.redirect('back');
     });
@@ -473,6 +235,19 @@ module.exports = function(app, passport) {
            }
        });
        res.redirect('back');
+    });
+    
+    
+    app.post('/update', isLoggedIn, function(req, res) {
+        var user = req.user;
+            user.local.username = req.body.username;
+            user.description    = req.body.description;
+        console.log("Updated user profile...");
+        
+         user.save(function(err) {
+            if(err) throw err;
+            res.redirect('/profile');
+        });
     });
 
 
