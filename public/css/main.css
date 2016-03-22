@@ -1,0 +1,98 @@
+/* animations */
+@-webkit-keyframes thumb {
+	0% { -webkit-transform: scale(1); }
+	50% { -webkit-transform: scale(0.9); }
+	100% { -webkit-transform: scale(1); }
+}
+@-moz-keyframes wiggle{
+    0% {-moz-transform:rotate(3deg);}
+    50% {-moz-transform:rotate(-3deg);}
+    100% {-moz-transform:rotate(3deg);}
+}
+@-webkit-keyframes wiggle{
+    0% {-webkit-transform:rotate(3deg);}
+    50% {-webkit-transform:rotate(-3deg);}
+    100% {-webkit-transform:rotate(3deg);}
+}
+@keyframes wiggle{
+    0% {transform:rotate(3deg);}
+    50% {transform:rotate(-3deg);}
+    100% {transform:rotate(3deg);}
+}
+@keyframes fastwiggle{
+    0% {transform:rotate(20deg);}
+    50% {transform:rotate(-20deg);}
+    100% {transform:rotate(20deg);}
+}
+
+@keyframes spring{
+    25% {transform:rotate(0deg);}
+    50% {transform:rotate(35deg);}
+    90% {transform:rotate(0deg);}
+    95% {transform:rotate(-180deg);}
+    100% {transform:rotate(-360deg);}
+}
+
+
+
+#like:hover {
+	-webkit-animation-name: thumb;
+	-webkit-animation-duration: 200ms;
+	-webkit-transform-origin:50% 50%;
+	-webkit-animation-iteration-count: 1;
+	-webkit-animation-timing-function: linear;
+}
+#connect:hover {
+    -webkit-animation-name: thumb;
+	-webkit-animation-duration: 200ms;
+	-webkit-transform-origin:50% 50%;
+	-webkit-animation-iteration-count: 1;
+	-webkit-animation-timing-function: linear;
+}
+
+#delete:hover{
+    -ms-animation:wiggle .3s infinite;
+    -moz-animation:wiggle .3s infinite;
+    -webkit-animation:wiggle .3s infinite;
+    animation:wiggle .3s infinite;
+}
+
+.item {
+    max-width: 80%;
+    max-height: 60%;
+}
+
+
+.like {
+  display: inline-block;
+  margin-left: 10px;
+  float: left;
+  margin-bottom: 10px;
+}
+.repost {
+  display: inline-block;
+  margin-right: 10px;
+  float: right;
+  margin-bottom: 10px;
+}
+
+#reportButton {
+    opacity: .5;
+}
+#reportButton:hover #reportBell{
+    -ms-animation:fastwiggle .2s infinite;
+    -moz-animation:fastwiggle .2s infinite;
+    -webkit-animation:fastwiggle .2s infinite;
+    animation:fastwiggle .2s infinite;
+}
+
+#repostButton:hover {
+    -ms-animation:spring .8s 1;
+    -moz-animation:spring .8s 1;
+    -webkit-animation:spring .8s 1;
+    animation:spring .8s 1;
+}
+
+.inline {
+    display: inline-block;
+}
