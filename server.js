@@ -31,6 +31,7 @@ app.set('view engine', 'ejs'); // set up ejs for templating
 
 app.use(express.static(__dirname + '/public'));
 app.use('/user/', express.static(__dirname + '/public'));
+//app.use('/appendItems/', express.static(__dirname + '/public'));
 app.use('/connect/', express.static(__dirname + '/public'));
 app.use('/tags/', express.static(__dirname + '/public'));
 

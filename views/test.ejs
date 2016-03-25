@@ -1,0 +1,115 @@
+<!doctype html>
+<html>
+<head>
+  <title>Pin !T</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  
+  <link rel="stylesheet" href="./css/main.css">
+  <link rel="stylesheet" href="./css/spinner.css">
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/masonry/4.0.0/masonry.pkgd.min.js"></script>
+  <script src="http://imagesloaded.desandro.com/imagesloaded.pkgd.js"></script>
+  <script src="./javascript/main.js"></script>
+</head>
+<body>
+  <div class="grid" id="masonry">
+    <% if(user) { %>
+      <% data.forEach(function(doc){ %>
+        <div class="grid-item text-center">
+            <img src="<%= doc.imgLink %>"/>
+            <div class="caption">
+                <div class="caption-text blur">
+                  <h3><%= doc.title %></h3>
+                  <p><%= doc.description %></p>
+                  <!--buttons-->
+                  <div>
+                    <div class="row">
+                      <div class="like">
+                        <% if(doc.likes.length > 0){ %>
+                          <% if(doc.likes.indexOf(user._id.toString())  == -1){ %>
+                                  <form action="/like/<%= doc._id %>" method="post" class="like"><button type="Submit" class="btn btn-primary" id="like"><span class="glyphicon glyphicon-thumbs-up"></span> Like</button>
+                                  </form>
+                          <% }else {%>
+                                  <form action="/unlike/<%= doc._id%>" method="post" class="like"><button type="Submit" class="btn btn-warning" id="like"><span class="glyphicon glyphicon-thumbs-down"></span> UnLike</button>
+                                  </form>
+                          <% } %>
+                        <% } else { %>
+                          <form action="/like/<%= doc._id %>" method="post" class="like"><button type="Submit" class="btn btn-primary" id="like"><span class="glyphicon glyphicon-thumbs-up"></span> Like</button>
+                          </form>
+                        <% } %>
+                        <br>
+                        <p class="inline"><%= doc.likes.length %> Likes</p>
+                      </div>
+                      <div class="repost">
+                        <% if(doc.repostedBy) { %>
+                          <% if(doc.repostedBy.indexOf(user._id.toString()) == -1){ %>
+                            <form action="/republish/<%= doc._id%>" method="post" class="repost">
+                              <button type="Submit" class="btn btn-success" id="repostButton"><span class="glyphicon glyphicon-refresh"></span> Repost</button>
+                            </form>
+                          <% }else{ %>
+                            <form action="/unrepublish/<%= doc._id%>" method="post" class="repost">
+                              <button type="Submit" class="btn btn-warning" id="repostButton"><span class="glyphicon glyphicon-refresh"></span> UnRepost</button>
+                            </form>
+                          <% } %>
+                        <% } else { %>
+                          <form action="/republish/<%= doc._id%>" method="post" class="repost">
+                            <button type="Submit" class="btn btn-success" id="repostButton"><span class="glyphicon glyphicon-refresh"></span> Repost</button>
+                          </form>
+                        <% } %>
+                        <br>
+                        <p class="inline"><%= doc.repostedBy.length %> Reposts</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <% if(doc.tags) { %>
+                      <p>Tags: 
+                        <% for(var a=0;a<doc.tags.length;a++){ %>
+                          <a href="/tags/<%= doc.tags[a].substr(1) %>"><%= doc.tags[a] %></a>
+                        <% } %>
+                      </p>
+                    <% } %>
+                    <p>Posted by <a href="/user/<%=doc.user%>"><%=doc.username%></a></p>
+                  </div>
+                  <form action="/report/'+ doc._id +'" method="post" id="report">
+                    <button class="btn btn-sm btn-danger" type="Submit" id="reportButton"><span class="glyphicon glyphicon-bell" id="reportBell"></span> REPORT</button>
+                  </form>
+              </div>
+            </div>
+        </div>
+      <% }) %>
+    <% } else { %>
+      <% data.forEach(function(doc){ %>
+        <div class="grid-item text-center">
+            <img src="<%= doc.imgLink %>"/>
+            <div class="caption">
+                <div class="caption-text blur">
+              <h3><%= doc.title %></h3>
+              <p><%= doc.description %></p>
+              <div class="like">
+                <p class="inline"><%= doc.likes.length %> Likes</p>
+              </div>
+              <div class="repost">
+                <p class="inline"><%= doc.repostedBy.length %> Reposts</p>
+              </div>
+              <div>
+                <% if(doc.tags) { %>
+                  <p>Tags: 
+                    <% for(var a=0;a<doc.tags.length;a++){ %>
+                      <a href="/tags/<%= doc.tags[a].substr(1) %>"><%= doc.tags[a] %></a>
+                    <% } %>
+                  </p>
+                <% } %>
+                <p>Posted by <a href="/user/<%=doc.user%>"><%=doc.username%></a></p>
+              </div>
+              </div>
+          </div>
+        </div>
+      <% }) %>
+    <% } %>
+  </div>
+
+</body>
+</html>

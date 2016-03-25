@@ -1,20 +1,16 @@
 module.exports = function(app, passport) {
     
-    
+    //sort mongo pins by newest => oldest
+    //add a search bar and look for everything
     //add a way to follow people and look at your subscriptions
         //add a way to view your subscribers and subscriptions
-    //masonry
-        //add a way to load more posts when the user scrolls down
-
     //future css
-    
-    //add more color.
-    
+        //add more color.
+    //problem with local files when going to tags
     
     var multer = require("multer"),
     mongodb = require("mongodb"),
     mongoUrl = "mongodb://localhost:27017/mongo",
-    fs = require("fs"),
     path = require("path"),
     upload = multer({ storage: multer.diskStorage({
 
@@ -30,40 +26,19 @@ module.exports = function(app, passport) {
           });
         }
     })});
+    var sizeOf = require('image-size');
+    var url = require('url');
     var User = require('./models/user');
-    Object.size=function(obj){var size=0,key;for(key in obj){if(obj.hasOwnProperty(key))size++;}return size;};
-// normal routes ===============================================================
-        mongodb.connect(mongoUrl, function(err, db) {
-            if(err) throw err;
+    var ObjectID=require('mongodb').ObjectID;
+    var currentQuery = {};
+    var download = require('download');
+    //Object.size=function(obj){var size=0,key;for(key in obj){if(obj.hasOwnProperty(key))size++;}return size;};
+//normal routes ================================================================
+    mongodb.connect(mongoUrl, function(err, db) {
+        if(err) throw err;
 
-
-    function loadMasonry(req, res, type, id) {
-        var query = {};
-        var ObjectID=require('mongodb').ObjectID;
-        var title = "Welcome to Pin !T";
-        var description;
-        if(type == 'tag') {
-            query = {tags: {$in: [id]}};
-            title = "Tag " + id;
-        } else if(type == 'user') {
-            query = {user: ObjectID(id)};
-            title = "";
-            User.findOne({_id: ObjectID(id)}, function(err, data) {
-                if(err) throw err;
-                if(data != null) {
-                    if(data.facebook.name) {
-                        title += data.facebook.name;
-                    } else if(data.twitter.username) {
-                        title += data.twitter.displayName;
-                    } else if(data.google.name) {
-                        title += data.google.name;
-                    } else if(data.local.username) {
-                        title += "User " + data.local.username;
-                    }
-                    description = data.description;
-                }
-            });
-        }
+    function loadMasonry(req, res, title, description, query) {
+        currentQuery = query;
         var docs = [];
         var data = db.collection("mongo").find(query).limit(10);
         db.collection('mongo').find(query).limit(10).count(function(err, num) {
@@ -73,34 +48,38 @@ module.exports = function(app, passport) {
                 data.forEach(function(doc) {
                     docs.push(doc);
                     a++;
-                    if(a == num) {
-                        //console.log(docs);
-                        if(req.isAuthenticated()) {
-                            res.render('index.ejs', {data: docs, title: title, user: req.user, description: description});
-                        } else {
-                            res.render('index2.ejs', {data: docs, title: title, description: description});
-                        }
-                    }
+                    if(a == num) res.render('index.ejs', {data: docs, title: title, description: description, user: req.user});
                 });
-            } else {
-                if(req.isAuthenticated()) {
-                    res.render('index.ejs', {data: docs, title: title, user: req.user, description: description});
-                } else {
-                    res.render('index2.ejs', {data: docs, title: title, description: description});
-                }
-            }
+            } else res.render('index.ejs', {data: docs, title: title, description: description, user: req.user});
         });
     }
 
     app.get('/', function(req, res) {
-        loadMasonry(req, res, "", "");
+        loadMasonry(req, res, "Welcome to Pin !T", "Created By Nathan O'Neel", {});
+    });
+    
+    app.get('/appendItems/:num', function(req, res) {
+        var skipAmount = Number(req.params.num);
+        console.log(skipAmount);
+        var docs = [];
+        var data = db.collection("mongo").find(currentQuery).skip(skipAmount).limit(10);
+        db.collection('mongo').find(currentQuery).skip(skipAmount).limit(10).count(function(err, num) {
+            if(err) throw err;
+            var a = 0;
+            if(num != 0) {
+                data.forEach(function(doc) {
+                    docs.push(doc);
+                    a++;
+                    if(a == num) res.render('template.ejs', {data: docs, user: req.user});
+                });
+            } else res.render('template.ejs', {data: docs, user: req.user});
+        });
     });
     
     app.get('/post', isLoggedIn, function(req, res) {
-       res.render('post.ejs'); 
+       res.render('post.ejs');
     });
 
-    // LOGOUT ==============================
     app.get('/logout', function(req, res) {
         req.logout();
         res.redirect('/');
@@ -115,19 +94,32 @@ module.exports = function(app, passport) {
         res.sendFile(path.join(__dirname + '/../images/' + id));
     });
 
-
     app.get('/user/:userID', function(req, res) {
        var id = req.params.userID.toString();
        if(req.isAuthenticated() && id == req.user._id.toString()) {
             res.redirect('/profile');
-       } else loadMasonry(req, res, 'user', id);
+       } else {
+        //var ObjectID=require('mongodb').ObjectID;
+        var title = "";
+        User.findOne({_id: ObjectID(id)}, function(err, data) {
+            if(err) throw err;
+            if(data != null) {
+                if(data.facebook.name) title += data.facebook.name;
+                else if(data.twitter.username) title += data.twitter.displayName;
+                else if(data.google.name) title += data.google.name;
+                else if(data.local.username) title += "User " + data.local.username;
+            }
+            loadMasonry(req, res, title, data.description, {user: ObjectID(id)});
+        });
+       }
     });
     
     app.get('/profile', isLoggedIn, function(req, res) {
-        var ObjectID=require('mongodb').ObjectID;
+        //var ObjectID=require('mongodb').ObjectID;
+        currentQuery = {$or: [{user: ObjectID(req.user._id.toString())}, {repostedBy: { $in: [req.user._id.toString()]}}]};
         var docs = [];
-        var data = db.collection("mongo").find({$or: [{user: ObjectID(req.user._id.toString())}, {repostedBy: { $in: [req.user._id.toString()]}}  ]}).limit(10);
-        db.collection('mongo').find({$or: [{user: ObjectID(req.user._id.toString())}, {repostedBy: { $in: [req.user._id.toString()]}}  ]}).limit(10).count(function(err, num) {
+        var data = db.collection("mongo").find({$or: [{user: ObjectID(req.user._id.toString())}, {repostedBy: { $in: [req.user._id.toString()]}}]}).limit(10);
+        db.collection('mongo').find({$or: [{user: ObjectID(req.user._id.toString())}, {repostedBy: { $in: [req.user._id.toString()]}}]}).limit(10).count(function(err, num) {
             if(err) throw err;
             var a = 0;
             if(num != 0) {
@@ -145,13 +137,12 @@ module.exports = function(app, passport) {
     });
     
     app.get('/tags/:tag', function(req, res) {
-        var id = '#'+req.params.tag;
-        loadMasonry(req, res, 'tag', id);
+        var id = '#'+ req.params.tag;
+        loadMasonry(req, res, id, undefined, {tags: {$in: [id]}});
     });
 
 // posts =======================================================================
     app.post('/post', upload.single('exact'), function(req, res) {
-        //res.json(req.file.path);
         var name = "";
         var tags = [];
         var tagField = req.body.tags.split(' ');
@@ -163,7 +154,6 @@ module.exports = function(app, passport) {
         } else if(req.user.twitter.username != undefined) { name=req.user.twitter.username;
         } else if(req.user.google.name != undefined) { name=req.user.google.name;
         } else { name = req.user.local.username;}
-        //console.log(name);
         function add(imgLink) {
             db.collection('mongo').insertOne({username: name, user: req.user._id, title:req.body.title, description:req.body.description, tags: tags, repostedBy: [], reportedBy: [], likes: [], imgLink: imgLink});
         }
@@ -174,12 +164,17 @@ module.exports = function(app, passport) {
             }
             var fileType = req.file.mimetype.split("/");
             fileType = fileType[fileType.length - 1];
-            console.log(fileType);
             var goodFileTypes = ["jpeg", "png", "gif", ];
             if(goodFileTypes.indexOf(fileType) != -1) {
-                console.log("The path for that new file is " +  filepath);
-                //db.collection('mongo').insertOne({username: name, user: req.user._id, title:req.body.title, description:req.body.description, imgLink: filepath});
-                add(filepath);
+                //console.log("The path for that new file is " +  filepath);
+                console.log(sizeOf(filepath).width + ' ' + sizeOf(filepath).height);
+                if(sizeOf(filepath).width < 300 || sizeOf(filepath).height < 300) {
+                    console.log("File too small");
+                } else if(sizeOf(filepath).width > 1000 || sizeOf(filepath).height > 1000) {
+                    console.log("File too Big");
+                } else {
+                    add(filepath);
+                }
             }
         } else {
             if(req.body.link === '') add('images/no_image.svg');
@@ -188,9 +183,8 @@ module.exports = function(app, passport) {
         res.redirect('/');
     });
 
-
     app.post('/delete/:id', isLoggedIn, function(req, res) {
-        var ObjectID=require('mongodb').ObjectID;
+        //var ObjectID=require('mongodb').ObjectID;
         var id = req.params.id.toString();
         db.collection('mongo').remove({_id: ObjectID(id), user: req.user._id});
         res.redirect('/profile');
@@ -198,35 +192,35 @@ module.exports = function(app, passport) {
 
     app.post('/like/:id', isLoggedIn, function(req, res) {
         var id = req.params.id;
-        var ObjectID=require('mongodb').ObjectID;
+        //var ObjectID=require('mongodb').ObjectID;
         db.collection('mongo').update({_id: ObjectID(id), likes: {$nin: [req.user._id.toString()]}}, { $push: {likes: req.user._id.toString() }  });
         res.redirect('back');
     });
 
     app.post('/unlike/:id', isLoggedIn, function(req, res) {
         var id = req.params.id;
-        var ObjectID=require('mongodb').ObjectID;
+        //var ObjectID=require('mongodb').ObjectID;
         db.collection('mongo').update({_id: ObjectID(id), likes: { $in: [req.user._id.toString()]}}, { $pull: {likes: req.user._id.toString() }  });
         res.redirect('back');
     });
     
     app.post('/republish/:id', isLoggedIn, function(req, res) {
         var id = req.params.id;
-        var ObjectID=require('mongodb').ObjectID;
+        //var ObjectID=require('mongodb').ObjectID;
         db.collection('mongo').update({_id: ObjectID(id), repostedBy: {$nin: [req.user._id.toString()]}}, { $push: {repostedBy: req.user._id.toString() }  });
         res.redirect('back');
     });
 
     app.post('/unrepublish/:id', isLoggedIn, function(req, res) {
         var id = req.params.id;
-        var ObjectID=require('mongodb').ObjectID;
+        //var ObjectID=require('mongodb').ObjectID;
         db.collection('mongo').update({_id: ObjectID(id), repostedBy: { $in: [req.user._id.toString()]}}, { $pull: {repostedBy: req.user._id.toString() }  });
         res.redirect('back');
     });
     
     app.post('/report/:id', isLoggedIn, function(req, res) {
        var id = req.params.id;
-       var ObjectID=require('mongodb').ObjectID;
+       //var ObjectID=require('mongodb').ObjectID;
        db.collection('mongo').update({_id: ObjectID(id), reportedBy: {$nin: [req.user._id.toString()]}}, { $push: {reportedBy: req.user._id.toString() }  });
        db.collection('mongo').findOne({_id: ObjectID(id)}, function(err, data) {
            if(err) throw err;
@@ -242,7 +236,7 @@ module.exports = function(app, passport) {
         var user = req.user;
             user.local.username = req.body.username;
             user.description    = req.body.description;
-        console.log("Updated user profile...");
+        //console.log("Updated user profile...");
         
          user.save(function(err) {
             if(err) throw err;
@@ -262,7 +256,7 @@ module.exports = function(app, passport) {
         });
         // process the login form
         app.post('/login', passport.authenticate('local-login', {
-            successRedirect : '/', // redirect to the secure profile section
+            successRedirect : '/profile', // redirect to the secure profile section
             failureRedirect : '/login', // redirect back to the signup page if there is an error
             failureFlash : true // allow flash messages
         }));
@@ -273,7 +267,7 @@ module.exports = function(app, passport) {
         });
         // process the signup form
         app.post('/signup', passport.authenticate('local-signup', {
-            successRedirect : '/', // redirect to the secure profile section
+            successRedirect : '/profile', // redirect to the secure profile section
             failureRedirect : '/signup', // redirect back to the signup page if there is an error
             failureFlash : true // allow flash messages
         }));
@@ -283,7 +277,7 @@ module.exports = function(app, passport) {
         // handle the callback after facebook has authenticated the user
         app.get('/auth/facebook/callback',
             passport.authenticate('facebook', {
-                successRedirect : '/',
+                successRedirect : '/profile',
                 failureRedirect : '/'
             }));
     // twitter --------------------------------
@@ -292,7 +286,7 @@ module.exports = function(app, passport) {
         // handle the callback after twitter has authenticated the user
         app.get('/auth/twitter/callback',
             passport.authenticate('twitter', {
-                successRedirect : '/',
+                successRedirect : '/profile',
                 failureRedirect : '/'
             }));
     // google ---------------------------------
@@ -301,7 +295,7 @@ module.exports = function(app, passport) {
         // the callback after google has authenticated the user
         app.get('/auth/google/callback',
             passport.authenticate('google', {
-                successRedirect : '/',
+                successRedirect : '/profile',
                 failureRedirect : '/'
             }));
 // =============================================================================
@@ -312,7 +306,7 @@ module.exports = function(app, passport) {
             res.render('connect-local.ejs', { message: req.flash('loginMessage') });
         });
         app.post('/connect/local', passport.authenticate('local-signup', {
-            successRedirect : '/', // redirect to the secure profile section
+            successRedirect : '/profile', // redirect to the secure profile section
             failureRedirect : '/', // redirect back to the signup page if there is an error
             failureFlash : true // allow flash messages
         }));
@@ -322,7 +316,7 @@ module.exports = function(app, passport) {
         // handle the callback after facebook has authorized the user
         app.get('/connect/facebook/callback',
             passport.authorize('facebook', {
-                successRedirect : '/',
+                successRedirect : '/profile',
                 failureRedirect : '/'
             }));
     // twitter --------------------------------
@@ -331,7 +325,7 @@ module.exports = function(app, passport) {
         // handle the callback after twitter has authorized the user
         app.get('/connect/twitter/callback',
             passport.authorize('twitter', {
-                successRedirect : '/',
+                successRedirect : '/profile',
                 failureRedirect : '/'
             }));
     // google ---------------------------------
@@ -340,7 +334,7 @@ module.exports = function(app, passport) {
         // the callback after google has authorized the user
         app.get('/connect/google/callback',
             passport.authorize('google', {
-                successRedirect : '/',
+                successRedirect : '/profile',
                 failureRedirect : '/'
             }));
 // =============================================================================

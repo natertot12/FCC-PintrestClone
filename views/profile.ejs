@@ -7,6 +7,7 @@
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
   
   <link rel="stylesheet" href="./css/main.css">
+  <link rel="stylesheet" href="./css/spinner.css">
   <script src="./javascript/main.js"></script>
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/masonry/4.0.0/masonry.pkgd.min.js"></script>
@@ -47,8 +48,8 @@
 
                 <% if (user.local.email) { %>
                     <p>
-                        <strong>email</strong>: <%= user.local.email %><br>
-                        <strong>username</strong>: <%= user.local.username %>
+                        <strong>Email</strong>: <%= user.local.email %><br>
+                        <strong>Username</strong>: <%= user.local.username %>
                     </p>
                     <a href="/update" class="btn btn-default" id="click">Update</a>
                     <a href="/unlink/local" class="btn btn-danger" id="delete">Delete</a>
@@ -67,8 +68,8 @@
                 <!-- check if the user has this token (is the user authenticated with this social account) -->
                 <% if (user.facebook.token) { %>
                     <p>
-                        <strong>email</strong>: <%= user.facebook.email %><br>
-                        <strong>name</strong>: <%= user.facebook.name %><br>
+                        <strong>Email</strong>: <%= user.facebook.email %><br>
+                        <strong>Name</strong>: <%= user.facebook.name %><br>
                     </p>
 
                     <a href="/unlink/facebook" class="btn btn-danger" id="delete">Delete</a>
@@ -87,8 +88,8 @@
 
                 <% if (user.twitter.token) { %>
                     <p>
-                        <strong>display name</strong>: <%= user.twitter.displayName %><br>
-                        <strong>username</strong>: <%= user.twitter.username %>
+                        <strong>Username</strong>: <%= user.twitter.username %><br>
+                        <strong>Name</strong>: <%= user.twitter.displayName %><br>
                     </p>
 
                     <a href="/unlink/twitter" class="btn btn-danger" id="delete">Delete</a>
@@ -106,8 +107,8 @@
 
                 <% if (user.google.token) { %>
                     <p>
-                        <strong>email</strong>: <%= user.google.email %><br>
-                        <strong>name</strong>: <%= user.google.name %>
+                        <strong>Email</strong>: <%= user.google.email %><br>
+                        <strong>Name</strong>: <%= user.google.name %>
                     </p>
 
                     <a href="/unlink/google" class="btn btn-danger" id="delete">Delete</a>
@@ -121,15 +122,28 @@
 </div>
 
 
-
+<div class='uil-default-css center-block' style='transform:scale(0.55);' id="spinner">
+  <div style='top:80px;left:93px;width:14px;height:40px;background:#00b2ff;-webkit-transform:rotate(0deg) translate(0,-60px);transform:rotate(0deg) translate(0,-60px);border-radius:10px;position:absolute;'>
+  </div><div style='top:80px;left:93px;width:14px;height:40px;background:#00b2ff;-webkit-transform:rotate(30deg) translate(0,-60px);transform:rotate(30deg) translate(0,-60px);border-radius:10px;position:absolute;'>
+  </div><div style='top:80px;left:93px;width:14px;height:40px;background:#00b2ff;-webkit-transform:rotate(60deg) translate(0,-60px);transform:rotate(60deg) translate(0,-60px);border-radius:10px;position:absolute;'>
+  </div><div style='top:80px;left:93px;width:14px;height:40px;background:#00b2ff;-webkit-transform:rotate(90deg) translate(0,-60px);transform:rotate(90deg) translate(0,-60px);border-radius:10px;position:absolute;'>
+  </div><div style='top:80px;left:93px;width:14px;height:40px;background:#00b2ff;-webkit-transform:rotate(120deg) translate(0,-60px);transform:rotate(120deg) translate(0,-60px);border-radius:10px;position:absolute;'>
+  </div><div style='top:80px;left:93px;width:14px;height:40px;background:#00b2ff;-webkit-transform:rotate(150deg) translate(0,-60px);transform:rotate(150deg) translate(0,-60px);border-radius:10px;position:absolute;'>
+  </div><div style='top:80px;left:93px;width:14px;height:40px;background:#00b2ff;-webkit-transform:rotate(180deg) translate(0,-60px);transform:rotate(180deg) translate(0,-60px);border-radius:10px;position:absolute;'>
+  </div><div style='top:80px;left:93px;width:14px;height:40px;background:#00b2ff;-webkit-transform:rotate(210deg) translate(0,-60px);transform:rotate(210deg) translate(0,-60px);border-radius:10px;position:absolute;'>
+  </div><div style='top:80px;left:93px;width:14px;height:40px;background:#00b2ff;-webkit-transform:rotate(240deg) translate(0,-60px);transform:rotate(240deg) translate(0,-60px);border-radius:10px;position:absolute;'>
+  </div><div style='top:80px;left:93px;width:14px;height:40px;background:#00b2ff;-webkit-transform:rotate(270deg) translate(0,-60px);transform:rotate(270deg) translate(0,-60px);border-radius:10px;position:absolute;'>
+  </div><div style='top:80px;left:93px;width:14px;height:40px;background:#00b2ff;-webkit-transform:rotate(300deg) translate(0,-60px);transform:rotate(300deg) translate(0,-60px);border-radius:10px;position:absolute;'>
+  </div><div style='top:80px;left:93px;width:14px;height:40px;background:#00b2ff;-webkit-transform:rotate(330deg) translate(0,-60px);transform:rotate(330deg) translate(0,-60px);border-radius:10px;position:absolute;'>
+</div></div><!--spinner-->
 
 
 <div class="container grid" id="masonry">
     <% data.forEach(function(doc){ %>
       <div class="grid-item">
-        <div class="thumbnail text-center">
-          <img src="<%= doc.imgLink %>"/>
-          <div class="caption">
+          <img src="<%= doc.imgLink %>" class="pin-image"/>
+        <div class="caption">
+            <div class="caption-text blur">
             <h3><%= doc.title %></h3>
             <p><%= doc.description %></p>
             <div>
