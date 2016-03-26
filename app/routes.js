@@ -1,12 +1,10 @@
 module.exports = function(app, passport) {
     
-    //sort mongo pins by newest => oldest
-    //add a search bar and look for everything
     //add a way to follow people and look at your subscriptions
         //add a way to view your subscribers and subscriptions
     //future css
         //add more color.
-    //problem with local files when going to tags
+    //add a way to show what tab the user is on based on where he is
     
     var multer = require("multer"),
     mongodb = require("mongodb"),
@@ -40,7 +38,7 @@ module.exports = function(app, passport) {
     function loadMasonry(req, res, title, description, query) {
         currentQuery = query;
         var docs = [];
-        var data = db.collection("mongo").find(query).limit(10);
+        var data = db.collection("mongo").find(query).limit(10).sort({$natural:-1});
         db.collection('mongo').find(query).limit(10).count(function(err, num) {
             if(err) throw err;
             var a = 0;
@@ -62,7 +60,7 @@ module.exports = function(app, passport) {
         var skipAmount = Number(req.params.num);
         console.log(skipAmount);
         var docs = [];
-        var data = db.collection("mongo").find(currentQuery).skip(skipAmount).limit(10);
+        var data = db.collection("mongo").find(currentQuery).skip(skipAmount).limit(10).sort({$natural:-1});
         db.collection('mongo').find(currentQuery).skip(skipAmount).limit(10).count(function(err, num) {
             if(err) throw err;
             var a = 0;
@@ -93,6 +91,10 @@ module.exports = function(app, passport) {
         var id = req.params.imageID;
         res.sendFile(path.join(__dirname + '/../images/' + id));
     });
+    app.get('/tags/images/:imageID', function(req, res) {
+        var id = req.params.imageID;
+        res.sendFile(path.join(__dirname + '/../images/' + id));
+    });
 
     app.get('/user/:userID', function(req, res) {
        var id = req.params.userID.toString();
@@ -118,7 +120,7 @@ module.exports = function(app, passport) {
         //var ObjectID=require('mongodb').ObjectID;
         currentQuery = {$or: [{user: ObjectID(req.user._id.toString())}, {repostedBy: { $in: [req.user._id.toString()]}}]};
         var docs = [];
-        var data = db.collection("mongo").find({$or: [{user: ObjectID(req.user._id.toString())}, {repostedBy: { $in: [req.user._id.toString()]}}]}).limit(10);
+        var data = db.collection("mongo").find({$or: [{user: ObjectID(req.user._id.toString())}, {repostedBy: { $in: [req.user._id.toString()]}}]}).limit(10).sort({$natural:-1});
         db.collection('mongo').find({$or: [{user: ObjectID(req.user._id.toString())}, {repostedBy: { $in: [req.user._id.toString()]}}]}).limit(10).count(function(err, num) {
             if(err) throw err;
             var a = 0;
@@ -181,6 +183,13 @@ module.exports = function(app, passport) {
             else add(req.body.link);
         }
         res.redirect('/');
+    });
+    
+    app.post('/search', function(req, res) {
+       var id = req.body.search;
+       var regex = new RegExp(".*" + id + ".*", "gi");
+       console.log(regex);
+       loadMasonry(req, res, "Search Results For " + id, "", {$or: [{tags: {$in: [id]}}, {title: regex}, {description: regex}, {username: regex}   ]});
     });
 
     app.post('/delete/:id', isLoggedIn, function(req, res) {

@@ -25,6 +25,7 @@ $(document).ready(function() {
     $(window).scroll(function() {   
         if($(window).scrollTop() + $(window).height() == $(document).height()) {
             var count = $("#masonry").find('img').size();
+            if(count % 10 != 0) ready = false;
             if(count >= 10 && ready) {
                 ready = false;
                 $('#bottom-spinner').show();
