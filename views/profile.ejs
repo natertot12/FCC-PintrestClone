@@ -6,6 +6,8 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
   
+  <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+  
   <link rel="stylesheet" href="./css/main.css">
   <link rel="stylesheet" href="./css/spinner.css">
   <script src="./javascript/main.js"></script>
@@ -24,6 +26,14 @@
     <div class="container-fluid">
       <ul class="nav navbar-nav navbar-left">
         <li><a href="/">Pin !T</a></li>
+        <li>
+            <div class="search-bar">
+              <form action="/search" method="post">
+                <button type="submit" id="search-button" class="icon fa fa-search"></button>
+                <input type="search" id="search" placeholder="Search" name="search" required/>
+              </form>
+            </div>
+          </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li><a href="/">Recent</a></li>

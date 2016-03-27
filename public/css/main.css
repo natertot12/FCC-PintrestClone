@@ -119,7 +119,7 @@
 }
 
 .grid-item{
-	float: left;
+	/*float: left;*/
 	padding: 0px;
 	position: relative;	
 	overflow: hidden;
@@ -265,6 +265,10 @@
 .search-bar #search-button {
     background: transparent;
     border: none;
+}
+
+.search-bar #search-button:focus {
+    outline: 0;
 }
 
 .search-bar .icon{

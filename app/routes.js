@@ -1,21 +1,12 @@
 module.exports = function(app, passport) {
-    
-    //add a way to follow people and look at your subscriptions
-        //add a way to view your subscribers and subscriptions
-    //future css
-        //add more color.
-    //add a way to show what tab the user is on based on where he is
-    
     var multer = require("multer"),
     mongodb = require("mongodb"),
     mongoUrl = "mongodb://localhost:27017/mongo",
     path = require("path"),
     upload = multer({ storage: multer.diskStorage({
-
         destination: function (req, file, cb) {
           cb(null, './images');
         },
-    
         filename: function (req, file, cb) {
           var ext = require('path').extname(file.originalname);
           ext = ext.length>1 ? ext : "." + require('mime').extension(file.mimetype);
@@ -24,17 +15,15 @@ module.exports = function(app, passport) {
           });
         }
     })});
-    var sizeOf = require('image-size');
-    var url = require('url');
+    //var sizeOf = require('image-size');
     var User = require('./models/user');
     var ObjectID=require('mongodb').ObjectID;
     var currentQuery = {};
-    var download = require('download');
-    //Object.size=function(obj){var size=0,key;for(key in obj){if(obj.hasOwnProperty(key))size++;}return size;};
+    
 //normal routes ================================================================
-    mongodb.connect(mongoUrl, function(err, db) {
-        if(err) throw err;
-
+mongodb.connect(mongoUrl, function(err, db) {
+    if(err) throw err;
+    
     function loadMasonry(req, res, title, description, query) {
         currentQuery = query;
         var docs = [];
@@ -51,14 +40,13 @@ module.exports = function(app, passport) {
             } else res.render('index.ejs', {data: docs, title: title, description: description, user: req.user});
         });
     }
-
+    
     app.get('/', function(req, res) {
         loadMasonry(req, res, "Welcome to Pin !T", "Created By Nathan O'Neel", {});
     });
     
     app.get('/appendItems/:num', function(req, res) {
         var skipAmount = Number(req.params.num);
-        console.log(skipAmount);
         var docs = [];
         var data = db.collection("mongo").find(currentQuery).skip(skipAmount).limit(10).sort({$natural:-1});
         db.collection('mongo').find(currentQuery).skip(skipAmount).limit(10).count(function(err, num) {
@@ -77,7 +65,7 @@ module.exports = function(app, passport) {
     app.get('/post', isLoggedIn, function(req, res) {
        res.render('post.ejs');
     });
-
+    
     app.get('/logout', function(req, res) {
         req.logout();
         res.redirect('/');
@@ -87,21 +75,22 @@ module.exports = function(app, passport) {
         var id = req.params.imageID;
         res.sendFile(path.join(__dirname + '/../images/' + id));
     });
+    
     app.get('/user/images/:imageID', function(req, res) {
         var id = req.params.imageID;
         res.sendFile(path.join(__dirname + '/../images/' + id));
     });
+    
     app.get('/tags/images/:imageID', function(req, res) {
         var id = req.params.imageID;
         res.sendFile(path.join(__dirname + '/../images/' + id));
     });
-
+    
     app.get('/user/:userID', function(req, res) {
        var id = req.params.userID.toString();
        if(req.isAuthenticated() && id == req.user._id.toString()) {
             res.redirect('/profile');
        } else {
-        //var ObjectID=require('mongodb').ObjectID;
         var title = "";
         User.findOne({_id: ObjectID(id)}, function(err, data) {
             if(err) throw err;
@@ -117,7 +106,6 @@ module.exports = function(app, passport) {
     });
     
     app.get('/profile', isLoggedIn, function(req, res) {
-        //var ObjectID=require('mongodb').ObjectID;
         currentQuery = {$or: [{user: ObjectID(req.user._id.toString())}, {repostedBy: { $in: [req.user._id.toString()]}}]};
         var docs = [];
         var data = db.collection("mongo").find({$or: [{user: ObjectID(req.user._id.toString())}, {repostedBy: { $in: [req.user._id.toString()]}}]}).limit(10).sort({$natural:-1});
@@ -168,7 +156,7 @@ module.exports = function(app, passport) {
             fileType = fileType[fileType.length - 1];
             var goodFileTypes = ["jpeg", "png", "gif", ];
             if(goodFileTypes.indexOf(fileType) != -1) {
-                //console.log("The path for that new file is " +  filepath);
+                /*                                                              double check file height/width
                 console.log(sizeOf(filepath).width + ' ' + sizeOf(filepath).height);
                 if(sizeOf(filepath).width < 300 || sizeOf(filepath).height < 300) {
                     console.log("File too small");
@@ -176,7 +164,8 @@ module.exports = function(app, passport) {
                     console.log("File too Big");
                 } else {
                     add(filepath);
-                }
+                }*/
+                add(filepath);
             }
         } else {
             if(req.body.link === '') add('images/no_image.svg');
@@ -188,12 +177,10 @@ module.exports = function(app, passport) {
     app.post('/search', function(req, res) {
        var id = req.body.search;
        var regex = new RegExp(".*" + id + ".*", "gi");
-       console.log(regex);
        loadMasonry(req, res, "Search Results For " + id, "", {$or: [{tags: {$in: [id]}}, {title: regex}, {description: regex}, {username: regex}   ]});
     });
 
     app.post('/delete/:id', isLoggedIn, function(req, res) {
-        //var ObjectID=require('mongodb').ObjectID;
         var id = req.params.id.toString();
         db.collection('mongo').remove({_id: ObjectID(id), user: req.user._id});
         res.redirect('/profile');
@@ -201,35 +188,30 @@ module.exports = function(app, passport) {
 
     app.post('/like/:id', isLoggedIn, function(req, res) {
         var id = req.params.id;
-        //var ObjectID=require('mongodb').ObjectID;
         db.collection('mongo').update({_id: ObjectID(id), likes: {$nin: [req.user._id.toString()]}}, { $push: {likes: req.user._id.toString() }  });
         res.redirect('back');
     });
 
     app.post('/unlike/:id', isLoggedIn, function(req, res) {
         var id = req.params.id;
-        //var ObjectID=require('mongodb').ObjectID;
         db.collection('mongo').update({_id: ObjectID(id), likes: { $in: [req.user._id.toString()]}}, { $pull: {likes: req.user._id.toString() }  });
         res.redirect('back');
     });
     
     app.post('/republish/:id', isLoggedIn, function(req, res) {
         var id = req.params.id;
-        //var ObjectID=require('mongodb').ObjectID;
         db.collection('mongo').update({_id: ObjectID(id), repostedBy: {$nin: [req.user._id.toString()]}}, { $push: {repostedBy: req.user._id.toString() }  });
         res.redirect('back');
     });
 
     app.post('/unrepublish/:id', isLoggedIn, function(req, res) {
         var id = req.params.id;
-        //var ObjectID=require('mongodb').ObjectID;
         db.collection('mongo').update({_id: ObjectID(id), repostedBy: { $in: [req.user._id.toString()]}}, { $pull: {repostedBy: req.user._id.toString() }  });
         res.redirect('back');
     });
     
     app.post('/report/:id', isLoggedIn, function(req, res) {
        var id = req.params.id;
-       //var ObjectID=require('mongodb').ObjectID;
        db.collection('mongo').update({_id: ObjectID(id), reportedBy: {$nin: [req.user._id.toString()]}}, { $push: {reportedBy: req.user._id.toString() }  });
        db.collection('mongo').findOne({_id: ObjectID(id)}, function(err, data) {
            if(err) throw err;
@@ -240,20 +222,15 @@ module.exports = function(app, passport) {
        res.redirect('back');
     });
     
-    
     app.post('/update', isLoggedIn, function(req, res) {
         var user = req.user;
-            user.local.username = req.body.username;
-            user.description    = req.body.description;
-        //console.log("Updated user profile...");
-        
-         user.save(function(err) {
+        user.local.username = req.body.username;
+        user.description    = req.body.description;
+        user.save(function(err) {
             if(err) throw err;
             res.redirect('/profile');
         });
     });
-
-
 // =============================================================================
 // AUTHENTICATE (FIRST LOGIN) ==================================================
 // =============================================================================
@@ -397,6 +374,5 @@ module.exports = function(app, passport) {
 function isLoggedIn(req, res, next) { 
     if (req.isAuthenticated()) 
         return next(); 
- 
     res.redirect('/'); 
 } 

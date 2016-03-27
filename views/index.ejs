@@ -60,7 +60,7 @@
               <form action="/login" method="post">
                   <div class="form-group">
                       <label>Email</label>
-                      <input type="text" class="form-control" name="email">
+                      <input type="email" class="form-control" name="email">
                   </div>
                   <div class="form-group">
                       <label>Password</label>
@@ -103,7 +103,7 @@
   </div><div style='top:80px;left:93px;width:14px;height:40px;background:#00b2ff;-webkit-transform:rotate(300deg) translate(0,-60px);transform:rotate(300deg) translate(0,-60px);border-radius:10px;position:absolute;'>
   </div><div style='top:80px;left:93px;width:14px;height:40px;background:#00b2ff;-webkit-transform:rotate(330deg) translate(0,-60px);transform:rotate(330deg) translate(0,-60px);border-radius:10px;position:absolute;'>
 </div></div><!--spinner-->
-  
+<div class="container center-block">
   <div class="grid" id="masonry">
     <% if(user) { %>
       <% data.forEach(function(doc){ %>
@@ -200,6 +200,7 @@
     <% } %>
   </div>
   </div>
+</div>
 <div class='uil-default-css center-block' style='transform:scale(0.55);' id="bottom-spinner">
   <div style='top:80px;left:93px;width:14px;height:40px;background:#00b2ff;-webkit-transform:rotate(0deg) translate(0,-60px);transform:rotate(0deg) translate(0,-60px);border-radius:10px;position:absolute;'>
   </div><div style='top:80px;left:93px;width:14px;height:40px;background:#00b2ff;-webkit-transform:rotate(30deg) translate(0,-60px);transform:rotate(30deg) translate(0,-60px);border-radius:10px;position:absolute;'>
